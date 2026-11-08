@@ -239,7 +239,11 @@ export default function ReceiptEditor() {
 
       // Convert ESC/POS buffer to base64 for transmission
       const uint8Array = new Uint8Array(buffer)
-      const receiptImageBase64 = btoa(String.fromCharCode(...Array.from(uint8Array)))
+      let binaryString = ''
+      for (let i = 0; i < uint8Array.length; i++) {
+        binaryString += String.fromCharCode(uint8Array[i])
+      }
+      const receiptImageBase64 = btoa(binaryString)
 
       // Get sender name from metadata with fallbacks
       let senderName = user?.user_metadata?.display_name as string | undefined
