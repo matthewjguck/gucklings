@@ -29,12 +29,12 @@ export default function ReceiptSent() {
       <div className="w-full max-w-sm text-center">
         <p className="text-callout text-text-secondary uppercase tracking-[0.2em]">sent</p>
         <h1 className="text-regular-semibold text-text-primary mt-3">
-          Your Inkling was sent!
+          Letter sent!
         </h1>
         <p className="text-subheadline text-text-secondary mt-3">
           {recipientLabel
-            ? `We've emailed ${recipientLabel} a link to read it.`
-            : "We've emailed your friend a link to read it."}
+            ? `Your letter to ${recipientLabel} will print at home.`
+            : 'Your letter will print at home.'}
         </p>
 
         {printPath && (
