@@ -82,7 +82,10 @@ export default function HomeScreen() {
           offsetY = 280 + (Math.random() - 0.5) * 30 // Bottom area: +265 to +295
           offsetX = (Math.random() - 0.5) * 120 // ±60px for second
         } else {
-          offsetY = (Math.random() - 0.5) * 360 // Wider vertical range for others
+          // Constrain other photos to middle zone to avoid top/bottom photos
+          // Top photo: -295 to -265, Bottom photo: +265 to +295
+          // Safe zone for others: -260 to +260
+          offsetY = (Math.random() - 0.5) * 260 // ±130px in safe zone
           offsetX = (Math.random() - 0.5) * 150 // ±75px horizontal
         }
 
