@@ -12,6 +12,15 @@ const FAMILY_PHOTOS = [
   '/family-4.jpg',
   '/family-5.jpg',
   '/family-6.jpg',
+  '/family-7.jpg',
+  '/family-8.jpg',
+  '/family-9.jpg',
+  '/family-10.jpg',
+  '/family-11.jpg',
+  '/family-12.jpg',
+  '/family-13.jpg',
+  '/family-14.jpg',
+  '/family-15.jpg',
 ]
 
 interface PolaroidPhoto {
@@ -62,17 +71,19 @@ export default function HomeScreen() {
       .sort(() => Math.random() - 0.5)
       .map((src, idx) => {
         let offsetY: number
+        let offsetX: number
 
         // Ensure first photo at top, second at bottom for visibility
         if (idx === 0) {
-          offsetY = -150 + (Math.random() - 0.5) * 40 // Top area
+          offsetY = -180 + (Math.random() - 0.5) * 50 // Top area
+          offsetX = (Math.random() - 0.5) * 120 // ±60px for first
         } else if (idx === 1) {
-          offsetY = 150 + (Math.random() - 0.5) * 40 // Bottom area
+          offsetY = 180 + (Math.random() - 0.5) * 50 // Bottom area
+          offsetX = (Math.random() - 0.5) * 120 // ±60px for second
         } else {
-          offsetY = (Math.random() - 0.5) * 300 // Random for others
+          offsetY = (Math.random() - 0.5) * 360 // Wider vertical range
+          offsetX = (Math.random() - 0.5) * 150 // ±75px horizontal
         }
-
-        const offsetX = (Math.random() - 0.5) * 100 // ±50px horizontal spread
 
         return {
           id: `photo-${idx}`,
