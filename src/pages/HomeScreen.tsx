@@ -29,6 +29,7 @@ interface PolaroidPhoto {
   rotation: number
   left: string
   top: string
+  zIndex: number
 }
 
 export default function HomeScreen() {
@@ -65,40 +66,20 @@ export default function HomeScreen() {
   }, [user?.id, user?.email])
 
   useEffect(() => {
-    // Generate randomized polaroid positions in a centered layered collage
-    // Highest z-index photos appear on top visually, so position them at screen top
+    // Randomly select 2 photos and display centered at top and bottom
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
-      .map((src, idx) => {
-        let offsetY: number
-        let offsetX: number
-        const totalPhotos = FAMILY_PHOTOS.length
-        const zIndex = totalPhotos - 1 - idx // Reverse: last photo gets highest z-index
-
-        // Top 2 visible photos (highest z-indices) - positioned at screen top and bottom
-        if (zIndex === totalPhotos - 1) {
-          // Highest z-index photo → top of screen
-          offsetY = -200 + (Math.random() - 0.5) * 30 // Top area: -215 to -185
-          offsetX = (Math.random() - 0.5) * 200 // ±100px horizontal spread
-        } else if (zIndex === totalPhotos - 2) {
-          // Second highest z-index → bottom of screen
-          offsetY = 200 + (Math.random() - 0.5) * 30 // Bottom area: +185 to +215
-          offsetX = (Math.random() - 0.5) * 200 // ±100px horizontal spread
-        } else {
-          // Other photos layer behind, spread freely
-          offsetY = (Math.random() - 0.5) * 400 // Full vertical range
-          offsetX = (Math.random() - 0.5) * 250 // ±125px horizontal spread
-        }
-
-        return {
-          id: `photo-${idx}`,
-          src,
-          rotation: Math.random() * 15 - 7.5,
-          left: `calc(50% - 140px + ${offsetX}px)`,
-          top: `calc(50% - 160px + ${offsetY}px)`,
-          zIndex,
-        }
-      })
+      .slice(0, 2) // Take only first 2 random photos
+      .map((src, idx) => ({
+        id: `photo-${idx}`,
+        src,
+        rotation: Math.random() * 15 - 7.5,
+        left: 'calc(50% - 140px)', // Centered horizontally
+        top: idx === 0
+          ? 'calc(50% - 360px)' // Top photo: higher up
+          : 'calc(50% + 200px)', // Bottom photo: lower down
+        zIndex: idx,
+      }))
     setPhotos(shuffled as any)
   }, [])
 
