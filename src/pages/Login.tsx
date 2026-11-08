@@ -1,12 +1,20 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import PageTransition from '@/components/PageTransition'
 
+function formatPhoneInput(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 10)
+  if (!digits) return ''
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+}
+
 export default function Login() {
   const { signIn } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState('')
+  const [passcode, setPasscode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -19,7 +27,7 @@ export default function Login() {
     setError('')
 
     try {
-      await signIn(email, password)
+      await signIn(phone, passcode)
       navigate(nextPath || '/home')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -33,9 +41,9 @@ export default function Login() {
   return (
     <PageTransition className="flex min-h-screen flex-col items-center justify-center bg-bg-base px-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-regular-semibold text-text-primary">Log in</h1>
+        <h1 className="text-regular-semibold text-text-primary">Log in to Gucklings</h1>
         <p className="text-subheadline text-text-secondary mt-2">
-          Enter your email and password to log back into your account
+          Enter your phone number and family passcode
         </p>
 
         {error && (
@@ -45,40 +53,43 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="mt-10 flex w-full flex-col gap-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Email"
-            className={inputClass}
-            disabled={loading}
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-mini text-text-primary font-semibold">+1</span>
+            <input
+              type="tel"
+              autoComplete="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+              required
+              placeholder="(555) 000-0000"
+              className={inputClass}
+              disabled={loading}
+            />
+          </div>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            value={passcode}
+            onChange={(e) => setPasscode(e.target.value)}
             required
-            placeholder="Password"
+            placeholder="Family Passcode"
             className={inputClass}
             disabled={loading}
           />
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !phone || !passcode}
             className="text-headline text-text-inverse bg-fill-primary rounded-md mt-8 flex w-full h-14 items-center justify-center disabled:opacity-50"
           >
             {loading ? 'Logging in...' : 'Continue'}
           </button>
-
-          <Link
-            to="/forgot-password"
-            className="text-subheadline text-text-primary mt-3 self-center underline"
-          >
-            Forgot password?
-          </Link>
         </form>
+
+        <p className="text-xs text-text-tertiary mt-6 text-center">
+          Not in the family? Ask someone to add you first.
+        </p>
       </div>
     </PageTransition>
   )

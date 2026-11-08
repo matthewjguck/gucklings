@@ -11,7 +11,7 @@ export default function Privacy() {
 
         <div className="prose text-base text-black mt-8 space-y-5">
           <p>
-            Inklings ("we", "us") is a personal messaging app that lets senders text short notes to
+            Gucklings ("we", "us") is a personal messaging app that lets senders text short notes to
             recipients by phone number. This policy explains what information we collect, how we use
             it, and your choices.
           </p>
@@ -51,7 +51,7 @@ export default function Privacy() {
 
           <h2 className="text-lg font-semibold text-black mt-6">SMS opt-out</h2>
           <p>
-            Recipients can reply <strong>STOP</strong> to any Inklings SMS at any time to stop
+            Recipients can reply <strong>STOP</strong> to any Gucklings SMS at any time to stop
             receiving further messages. Reply <strong>HELP</strong> for support information.
           </p>
 

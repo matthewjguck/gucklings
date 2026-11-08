@@ -6,20 +6,19 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, displayName?: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (phone: string, passcode: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-const MOCK_USER_EMAIL_KEY = 'capstone.mock.user.email'
+const PERSISTED_USER_KEY = 'gucklings.auth.user'
 
-function createMockUser(email: string) {
+function createMockUser(email: string, id: string, displayName?: string) {
   return {
-    id: 'mock-user',
+    id,
     aud: 'authenticated',
-    app_metadata: { provider: 'email', providers: ['email'] },
-    user_metadata: {},
+    app_metadata: { provider: 'phone', providers: ['phone'] },
+    user_metadata: { phone: email, display_name: displayName },
     created_at: new Date(0).toISOString(),
     email,
   } as User
@@ -27,12 +26,20 @@ function createMockUser(email: string) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    if (supabase || typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
       return null
     }
 
-    const email = window.localStorage.getItem(MOCK_USER_EMAIL_KEY)
-    return email ? createMockUser(email) : null
+    const stored = window.localStorage.getItem(PERSISTED_USER_KEY)
+    if (stored) {
+      try {
+        return JSON.parse(stored) as User
+      } catch (e) {
+        console.error('Failed to parse stored user:', e)
+        return null
+      }
+    }
+    return null
   })
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(Boolean(supabase))
@@ -59,57 +66,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const signIn = async (phone: string, passcode: string) => {
     if (!supabase) {
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters')
+      // Mock: accept any phone + passcode in dev
+      if (!phone || !passcode) {
+        throw new Error('Phone and passcode are required')
       }
-
-      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, email)
-      setUser(createMockUser(email))
+      const mockUser = createMockUser(phone, 'mock-user')
+      window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
+      setUser(mockUser)
       setSession(null)
       return
     }
 
-    const trimmed = displayName?.trim()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: trimmed ? { data: { display_name: trimmed } } : undefined,
-    })
-    if (error) throw error
-  }
+    // Normalize phone number to digits only for comparison (add country code if missing)
+    const phoneDigits = parseInt('1' + phone.replace(/\D/g, ''), 10)
 
-  const signIn = async (email: string, password: string) => {
-    if (!supabase) {
-      if (!email || !password) {
-        throw new Error('Email and password are required')
-      }
+    // Verify phone + passcode against database
+    const { data: allProfiles, error: queryError } = await supabase
+      .from('profiles')
+      .select('id, phone_number, passcode_hash, display_name')
+      .returns<Array<{ id: string; phone_number: number; passcode_hash: string; display_name: string }>>()
 
-      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, email)
-      setUser(createMockUser(email))
-      setSession(null)
-      return
+    if (queryError || !allProfiles) {
+      throw new Error('Unable to verify phone number')
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    // Find profile matching phone number (now stored as bigint)
+    const data = allProfiles.find(p => p.phone_number === phoneDigits)
+
+    if (!data) {
+      throw new Error('Phone number not found. Contact your family to be added.')
+    }
+
+    // Simple passcode verification (in production, use bcrypt)
+    if (data.passcode_hash !== passcode) {
+      throw new Error('Incorrect passcode')
+    }
+
+    // Create a mock authenticated user from the profile
+    const mockUser = createMockUser(
+      `${phoneDigits}@gucklings.local`,
+      data.id,
+      data.display_name
+    )
+
+    // Persist user to localStorage
+    window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
+    setUser(mockUser)
+    setSession(null)
   }
 
   const signOut = async () => {
-    if (!supabase) {
-      window.localStorage.removeItem(MOCK_USER_EMAIL_KEY)
-      setUser(null)
-      setSession(null)
-      return
-    }
+    // Clear persisted user
+    window.localStorage.removeItem(PERSISTED_USER_KEY)
+    setUser(null)
+    setSession(null)
 
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    if (supabase) {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,0 +1,15 @@
+[Unit]
+Description=Print Server First-Boot Provisioning
+After=network-online.target
+Wants=network-online.target
+Before=inklings-printer.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/capstone/print-server/provision.sh
+StandardOutput=journal
+StandardError=journal
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

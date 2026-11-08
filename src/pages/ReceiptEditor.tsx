@@ -11,13 +11,11 @@ import FontWeightSlider from '@/components/canvas/FontWeightSlider'
 import RedactionLevelSlider from '@/components/canvas/RedactionLevelSlider'
 import ImageAdjustmentPanel from '@/components/canvas/ImageAdjustmentPanel'
 import { DEFAULT_ADJUSTMENTS } from '@/lib/imageProcessing'
-import { loadDraft, saveDraft, clearDraft } from '@/lib/onboardingDraft'
+import { loadDraft, clearDraft } from '@/lib/onboardingDraft'
 import { renderToPrintBuffer } from '@/lib/escpos'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Block, TextStyle, Signature, CornerSticker } from '@/types/canvas'
 import { newBlockId, STYLE_LABELS } from '@/types/canvas'
-import headerLogoSvg from '@/assets/icons/header-logo.svg'
 import recipientBarSvg from '@/assets/icons/recipient-bar.svg'
 
 export default function ReceiptEditor() {
@@ -58,7 +56,6 @@ export default function ReceiptEditor() {
   })
   const [signatureActive, setSignatureActive] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const headerVariant = 'simple' as const
   const receiptRef = useRef<HTMLDivElement>(null)
   const signatureAreaRef = useRef<HTMLDivElement>(null)
   const recipientNameRef = useRef<HTMLDivElement>(null)
@@ -244,75 +241,23 @@ export default function ReceiptEditor() {
       // Extract just the base64 part (remove "data:image/png;base64," prefix)
       const receiptImageBase64 = imageBase64?.replace(/^data:image\/\w+;base64,/, '') || ''
 
-      // If recipient is pre-selected (home flow), send directly
-      if (recipientEmail || recipientFriendId) {
-        // Verify sender is authenticated - if not, redirect to login
-        if (!user?.email) {
-          console.error('[ReceiptEditor] Sender not authenticated, redirecting to login:', { user })
-          navigate('/login')
-          return
-        }
-
-        // Construct recipient email (allow any email, including new/unverified ones)
-        const email = recipientEmail || (recipientFriendId ? `${recipientFriendId}@stanford.edu` : null)
-        if (!email) {
-          console.error('[ReceiptEditor] Missing recipient email')
-          throw new Error('Missing recipient email')
-        }
-
-        // Get sender name from metadata with fallbacks
-        let senderName = user.user_metadata?.display_name as string | undefined
-        if (!senderName && user.user_metadata?.full_name) {
-          senderName = (user.user_metadata.full_name as string).split(' ')[0]
-        }
-        if (!senderName) {
-          senderName = user.email.split('@')[0]
-        }
-
-        console.log('[ReceiptEditor] Sending receipt:', { email, senderName })
-
-        // Send via edge function
-        if (supabase) {
-          console.log('[ReceiptEditor] Sending receipt to', email, 'with bitmap length:', receiptImageBase64?.length || 0)
-          const { error: invokeErr } = await supabase.functions.invoke('send-recipt-email', {
-            body: {
-              recipientEmail: email,
-              senderName,
-              content: {
-                blocks,
-                prompt: '',
-                signature,
-                headerVariant,
-              },
-              receiptImage: receiptImageBase64,
-            },
-          })
-          if (invokeErr) {
-            console.error('[ReceiptEditor] Edge function error:', invokeErr)
-            throw invokeErr
-          }
-          console.log('[ReceiptEditor] Receipt sent successfully')
-        }
-
-        clearDraft()
-        navigate('/receipt-sent', {
-          state: {
-            recipientLabel: email,
-          },
-        })
-      } else {
-        // No pre-selected recipient (onboarding flow), save to draft and navigate to recipient selection
-        saveDraft({
-          content: {
-            blocks,
-            prompt: '',
-            signature,
-            headerVariant,
-            receiptImage: receiptImageBase64,
-          },
-        })
-        navigate('/onboard/recipient')
+      // Get sender name from metadata with fallbacks
+      let senderName = user?.user_metadata?.display_name as string | undefined
+      if (!senderName && user?.user_metadata?.full_name) {
+        senderName = (user.user_metadata.full_name as string).split(' ')[0]
       }
+      if (!senderName) {
+        senderName = user?.email?.split('@')[0] || 'Family'
+      }
+
+      // Navigate to printing confirmation to show receipt and wait for print confirmation
+      clearDraft()
+      navigate('/printing-confirmation', {
+        state: {
+          receiptImage: receiptImageBase64,
+          senderName,
+        },
+      })
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate receipt image'
       console.error('Failed to generate receipt image:', err)
@@ -429,7 +374,7 @@ export default function ReceiptEditor() {
         <div className="p-5 space-y-3">
           {/* Header */}
           <div className="mb-4 mt-6 flex justify-center">
-            <img src={headerLogoSvg} alt="Inklings" className="h-auto max-w-full" />
+            <img src="/gucklings-logo.svg" alt="Gucklings" className="h-auto max-w-full" />
           </div>
 
           {/* Recipient Bar */}
