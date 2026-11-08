@@ -87,31 +87,57 @@ Gucklings uses a **phone number + family passcode** system. No SMS costs, comple
 
 ### Set up family members
 
-After initializing the database, add family members manually using Supabase's SQL editor or admin panel:
+#### Quick Setup (Gucklings provided family list)
+
+If using the provided family, simply run `supabase/seed.sql` after `schema.sql`:
+
+1. Go to Supabase **SQL Editor**
+2. Copy and paste the contents of `supabase/schema.sql` and run it
+3. Copy and paste the contents of `supabase/seed.sql` and run it
+4. Done! All family members are pre-loaded
+
+**Pre-loaded family:**
+- Chris: +1-903-445-7839
+- Matthew: +1-903-445-5904
+- Stephanie: +1-903-445-6139
+- Cookie: +1-903-445-4552
+- Mom: +1-903-240-7786
+- Dad: +1-903-220-8120
+
+**Default passcode:** `Gucklings2024!`
+
+> ⚠️ **Security:** Change this passcode after first login! Update it in the database or create individual passcodes per person.
+
+#### Custom family setup
+
+To use a different family or passcode:
+
+1. Go to Supabase **SQL Editor**
+2. Run `schema.sql` first
+3. Manually insert your family members:
 
 ```sql
--- Insert a family member (change values as needed)
 INSERT INTO profiles (id, phone_number, passcode_hash, display_name)
 VALUES (
   gen_random_uuid(),
   '+1-555-123-4567',
-  'familypasscode123',  -- In production, hash this with bcrypt
+  'YourFamilyPasscode',
   'Matthew'
 );
 ```
 
-Or add via Supabase dashboard:
-1. Go to **SQL Editor**
-2. Run the above SQL with your family members' info
-3. Phone numbers should be in format: +1-555-123-4567
-4. Passcode is stored plaintext (TODO: hash with bcrypt in production)
+Phone number format: `+1-AAA-BBB-CCCC`
 
 ### Add/remove family members
 
-Family members must be pre-registered in the database. To add someone new:
-1. Get their phone number
-2. Insert a new row in the `profiles` table
-3. They can then log in with their phone + family passcode
+To add someone new after initial setup:
+1. Open Supabase **SQL Editor**
+2. Insert new profile row with phone + passcode
+3. They can log in immediately
+
+To remove someone:
+1. Delete their row from `profiles` table
+2. Their access is revoked immediately
 
 ## 4. Deploy to Vercel
 
@@ -178,9 +204,14 @@ npm run dev
 ```
 
 1. Go to http://localhost:5173/login
-2. Enter a family member's phone number (e.g., +1-555-123-4567)
-3. Enter the family passcode
+2. Enter a family member's phone number:
+   - Matthew: `+1-903-445-5904`
+   - Chris: `+1-903-445-7839`
+   - Or any from the list above
+3. Enter the family passcode: `Gucklings2024!`
 4. Should log in to home screen
+
+**Try different family members** to ensure everyone can access the app!
 
 ### Test letter composition
 
@@ -199,15 +230,18 @@ npm run dev
 
 ## 7. Deployment Checklist
 
-- [ ] Supabase project created and schema initialized
-- [ ] Family members added to profiles table with phone + passcode
-- [ ] Environment variables set for web app
+- [ ] Supabase project created
+- [ ] schema.sql executed (creates tables)
+- [ ] seed.sql executed (loads family members)
+- [ ] All 6 family members can log in with passcode
+- [ ] Environment variables set for web app (.env.local)
+- [ ] Test locally: `npm run dev` → verify login works
 - [ ] Environment variables set for print server
 - [ ] Web app deployed to Vercel
-- [ ] Heartbeat cron configured
+- [ ] Heartbeat cron configured in Vercel
 - [ ] Print server running at parents' house
-- [ ] Test print successful
-- [ ] Family members able to log in via phone OTP
+- [ ] Test print successful from one family member
+- [ ] All family members able to log in
 - [ ] Letters print correctly at home
 
 ## Troubleshooting
