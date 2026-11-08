@@ -104,7 +104,7 @@ export default function HomeScreen() {
 
   const handleSendClick = () => {
     clearDraft()
-    navigate('/onboard/recipient')
+    navigate('/compose')
   }
 
   return (
