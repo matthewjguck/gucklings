@@ -21,6 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
 
       const supabase = createClient(url, key)
+      console.log('[print-api] Client created, attempting insert...')
 
       // Store print job in Supabase
       const { data, error } = await supabase
@@ -35,10 +36,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .single()
 
       if (error) {
-        console.error('Supabase error:', error)
-        return res.status(500).json({ error: 'Failed to create print job' })
+        console.error('[print-api] Supabase error:', error)
+        return res.status(500).json({ error: 'Failed to create print job', details: error })
       }
 
+      console.log('[print-api] Insert successful, jobId:', data.id)
       return res.status(200).json({ jobId: data.id })
     } catch (err) {
       console.error('Print API error:', err)
