@@ -108,7 +108,7 @@ If you have a private family list with phone numbers:
 - Replace placeholder phone numbers with real ones
 - Save as `supabase/seed-family.sql` (gets ignored by git)
 
-**Default passcode:** `Gucklings2024!` (change after first login)
+**Default passcode:** `Gucklings2026!` (change after first login if needed)
 
 #### Custom family setup
 
