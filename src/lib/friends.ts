@@ -109,7 +109,6 @@ interface FriendshipInfo {
 
 /**
  * Get the friendship status between two users.
- * Used to determine button state in FindInklings.
  */
 export async function getFriendshipStatus(
   currentUserId: string,

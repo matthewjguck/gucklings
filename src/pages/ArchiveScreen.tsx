@@ -265,11 +265,11 @@ function ReceiptDisplay({ receipt }: { receipt: Receipt }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
           {receiptState.headerVariant === 'simple' ? (
-            <img src="/header-logo.svg" alt="Inklings" style={{ height: '48px', width: 'auto' }} />
+            <img src="/header-logo.svg" alt="Gucklings" style={{ height: '48px', width: 'auto' }} />
           ) : receiptState.headerVariant === 'squids-checkers' ? (
-            <img src="/header-squids-checkers.svg" alt="Inklings squids checkers" style={{ height: '60px', width: 'auto' }} />
+            <img src="/header-squids-checkers.svg" alt="Gucklings squids checkers" style={{ height: '60px', width: 'auto' }} />
           ) : receiptState.headerVariant === 'squids-v1' ? (
-            <img src="/header-squids-v1.svg" alt="Inklings squids v1" style={{ height: '60px', width: 'auto' }} />
+            <img src="/header-squids-v1.svg" alt="Gucklings squids v1" style={{ height: '60px', width: 'auto' }} />
           ) : null}
         </div>
 

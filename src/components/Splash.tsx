@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const PHASES = ['Inklings', 'a new way to connect']
+const PHASES = ['Gucklings', 'family letters, printed']
 
 const TYPE_MS = 65
 const HOLD_MS = 700

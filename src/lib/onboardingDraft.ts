@@ -2,7 +2,7 @@ import type { Block, CornerSticker, Signature } from '@/types/canvas'
 import type { Json } from '@/types/database'
 import { supabase } from '@/lib/supabase'
 
-const STORAGE_KEY = 'inklings.onboardingDraft_v1'
+const STORAGE_KEY = 'gucklings.onboardingDraft_v1'
 
 export type OnboardingDraft = {
   content: {

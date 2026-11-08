@@ -11,11 +11,11 @@ export default function Terms() {
 
         <div className="prose text-base text-black mt-8 space-y-5">
           <h2 className="text-lg font-semibold text-black mt-2">Program name</h2>
-          <p>Inklings Personal Receipts.</p>
+          <p>Gucklings Personal Receipts.</p>
 
           <h2 className="text-lg font-semibold text-black mt-6">Service description</h2>
           <p>
-            Inklings lets you compose a short personal note ("receipt") and send it as an SMS to a
+            Gucklings lets you compose a short personal note ("receipt") and send it as an SMS to a
             single recipient whose phone number you provide. Each send is initiated manually by the
             sender — we do not send recurring or automated messages.
           </p>
@@ -34,26 +34,26 @@ export default function Terms() {
 
           <h2 className="text-lg font-semibold text-black mt-6">Opt-out</h2>
           <p>
-            Reply <strong>STOP</strong> to any Inklings SMS to opt out of future messages. You will
+            Reply <strong>STOP</strong> to any Gucklings SMS to opt out of future messages. You will
             receive one confirmation reply, then no further messages.
           </p>
 
           <h2 className="text-lg font-semibold text-black mt-6">Support</h2>
           <p>
-            Reply <strong>HELP</strong> to any Inklings SMS for help. You can also email{' '}
+            Reply <strong>HELP</strong> to any Gucklings SMS for help. You can also email{' '}
             <a className="underline" href="mailto:hello@inklings.app">hello@inklings.app</a>.
           </p>
 
           <h2 className="text-lg font-semibold text-black mt-6">Consent</h2>
           <p>
-            By entering a recipient's phone number in the Inklings web app, the sender represents
+            By entering a recipient's phone number in the Gucklings web app, the sender represents
             that they have the recipient's permission to send a personal message to that number.
             Senders agree not to use the service for commercial, promotional, or bulk messaging.
           </p>
 
           <h2 className="text-lg font-semibold text-black mt-6">Prohibited use</h2>
           <p>
-            You agree not to use Inklings to send unlawful, harassing, or unsolicited commercial
+            You agree not to use Gucklings to send unlawful, harassing, or unsolicited commercial
             messages. Accounts found in violation may be suspended without notice.
           </p>
 

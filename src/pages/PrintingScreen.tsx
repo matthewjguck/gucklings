@@ -399,11 +399,11 @@ export default function PrintingScreen() {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', marginTop: '12px' }}>
               {receiptState.headerVariant === 'simple' ? (
-                <img src="/header-logo.svg" alt="Inklings" style={{ height: '64px', width: 'auto' }} />
+                <img src="/header-logo.svg" alt="Gucklings" style={{ height: '64px', width: 'auto' }} />
               ) : receiptState.headerVariant === 'squids-checkers' ? (
-                <img src="/header-squids-checkers.svg" alt="Inklings squids checkers" style={{ height: '80px', width: 'auto' }} />
+                <img src="/header-squids-checkers.svg" alt="Gucklings squids checkers" style={{ height: '80px', width: 'auto' }} />
               ) : receiptState.headerVariant === 'squids-v1' ? (
-                <img src="/header-squids-v1.svg" alt="Inklings squids v1" style={{ height: '80px', width: 'auto' }} />
+                <img src="/header-squids-v1.svg" alt="Gucklings squids v1" style={{ height: '80px', width: 'auto' }} />
               ) : null}
             </div>
 

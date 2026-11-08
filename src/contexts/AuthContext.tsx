@@ -6,8 +6,8 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, displayName?: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
+  sendOTP: (phone: string) => Promise<void>
+  verifyOTP: (phone: string, token: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -59,40 +59,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const sendOTP = async (phone: string) => {
     if (!supabase) {
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters')
+      // Mock: just accept any phone number in dev
+      if (!phone) {
+        throw new Error('Phone number is required')
       }
-
-      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, email)
-      setUser(createMockUser(email))
-      setSession(null)
       return
     }
 
-    const trimmed = displayName?.trim()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: trimmed ? { data: { display_name: trimmed } } : undefined,
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
     })
     if (error) throw error
   }
 
-  const signIn = async (email: string, password: string) => {
+  const verifyOTP = async (phone: string, token: string) => {
     if (!supabase) {
-      if (!email || !password) {
-        throw new Error('Email and password are required')
-      }
-
-      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, email)
-      setUser(createMockUser(email))
+      // Mock: create mock user with phone
+      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, phone)
+      setUser(createMockUser(phone))
       setSession(null)
       return
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
+    })
     if (error) throw error
   }
 
@@ -109,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, sendOTP, verifyOTP, signOut }}>
       {children}
     </AuthContext.Provider>
   )
