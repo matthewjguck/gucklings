@@ -72,8 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!phone || !passcode) {
         throw new Error('Phone and passcode are required')
       }
-      window.localStorage.setItem(MOCK_USER_EMAIL_KEY, phone)
-      setUser(createMockUser(phone))
+      const mockUser = createMockUser(phone, 'mock-user')
+      window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
+      setUser(mockUser)
       setSession(null)
       return
     }
@@ -91,8 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Find profile matching phone number (now stored as bigint)
-    const data = allProfiles.find(p =>
-      p.phone_number === phoneDigits
+    const data = allProfiles?.find(p =>
+      p?.phone_number === phoneDigits
     )
 
     if (!data) {
@@ -105,14 +106,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Create a mock authenticated user from the profile
-    const mockUser = {
-      id: data.id,
-      aud: 'authenticated',
-      app_metadata: { provider: 'phone', providers: ['phone'] },
-      user_metadata: { phone: phoneDigits, display_name: data.display_name },
-      created_at: new Date().toISOString(),
-      email: `${phoneDigits}@gucklings.local`,
-    } as User
+    const mockUser = createMockUser(
+      `${phoneDigits}@gucklings.local`,
+      data.id,
+      data.display_name
+    )
 
     // Persist user to localStorage
     window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))

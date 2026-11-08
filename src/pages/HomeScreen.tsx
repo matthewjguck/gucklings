@@ -39,26 +39,37 @@ export default function HomeScreen() {
   const [displayName, setDisplayName] = useState('')
 
   useEffect(() => {
-    // Get display name from profiles table
+    // Get display name from profiles table or user metadata
     const fetchDisplayName = async () => {
       if (!user?.id) return
-      try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('id', user.id)
-          .single()
 
-        if (data?.display_name) {
-          setDisplayName(data.display_name)
-        } else if (user?.email) {
-          setDisplayName(user.email.split('@')[0])
+      // First try user metadata (from localStorage)
+      if (user.user_metadata?.display_name) {
+        setDisplayName(user.user_metadata.display_name)
+        return
+      }
+
+      // Then try Supabase query
+      if (supabase) {
+        try {
+          const { data } = await supabase!
+            .from('profiles')
+            .select('display_name')
+            .eq('id', user.id)
+            .single()
+
+          if (data?.display_name) {
+            setDisplayName(data.display_name as string)
+            return
+          }
+        } catch (err) {
+          // Fallback to email if query fails
         }
-      } catch (err) {
-        // Fallback to email if query fails
-        if (user?.email) {
-          setDisplayName(user.email.split('@')[0])
-        }
+      }
+
+      // Final fallback to email
+      if (user?.email) {
+        setDisplayName(user.email.split('@')[0])
       }
     }
 
