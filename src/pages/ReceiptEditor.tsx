@@ -231,15 +231,15 @@ export default function ReceiptEditor() {
         }
       })
 
-      // Render receipt to bitmap
+      // Render receipt to ESC/POS buffer
       console.log('[ReceiptEditor] Starting bitmap capture...')
-      const { imageBase64 } = await renderToPrintBuffer(cleanReceipt)
+      const { buffer, imageBase64 } = await renderToPrintBuffer(cleanReceipt)
       document.body.removeChild(cleanReceipt)
-      console.log('[ReceiptEditor] Bitmap captured, length:', imageBase64?.length || 0)
-      console.log('[ReceiptEditor] Bitmap format:', imageBase64?.substring(0, 30) ?? 'undefined')
+      console.log('[ReceiptEditor] Bitmap captured, ESC/POS buffer length:', buffer.length)
 
-      // Extract just the base64 part (remove "data:image/png;base64," prefix)
-      const receiptImageBase64 = imageBase64?.replace(/^data:image\/\w+;base64,/, '') || ''
+      // Convert ESC/POS buffer to base64 for transmission
+      const uint8Array = new Uint8Array(buffer)
+      const receiptImageBase64 = btoa(String.fromCharCode(...Array.from(uint8Array)))
 
       // Get sender name from metadata with fallbacks
       let senderName = user?.user_metadata?.display_name as string | undefined
@@ -294,9 +294,7 @@ export default function ReceiptEditor() {
       const { imageBase64 } = await renderToPrintBuffer(cleanReceipt)
       document.body.removeChild(cleanReceipt)
 
-      const receiptImageBase64 = imageBase64?.replace(/^data:image\/\w+;base64,/, '') || ''
-      const imageUrl = `data:image/png;base64,${receiptImageBase64}`
-      setPreviewImage(imageUrl)
+      setPreviewImage(imageBase64 || null)
     } catch (err) {
       console.error('Preview failed:', err)
     }
