@@ -73,12 +73,12 @@ export default function HomeScreen() {
         let offsetY: number
         let offsetX: number
 
-        // Ensure first photo at top, second at bottom for visibility
+        // Ensure first photo at top, second at bottom for visibility - no touching
         if (idx === 0) {
-          offsetY = -180 + (Math.random() - 0.5) * 50 // Top area
+          offsetY = -240 + (Math.random() - 0.5) * 40 // Top area, further up
           offsetX = (Math.random() - 0.5) * 120 // ±60px for first
         } else if (idx === 1) {
-          offsetY = 180 + (Math.random() - 0.5) * 50 // Bottom area
+          offsetY = 240 + (Math.random() - 0.5) * 40 // Bottom area, further down
           offsetX = (Math.random() - 0.5) * 120 // ±60px for second
         } else {
           offsetY = (Math.random() - 0.5) * 360 // Wider vertical range
