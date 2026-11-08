@@ -56,28 +56,21 @@ export default function HomeScreen() {
   }, [user?.id, user?.email])
 
   useEffect(() => {
-    // Generate randomized polaroid positions spread across the container
+    // Generate randomized polaroid positions in a centered layered collage
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
       .map((src, idx) => {
-        // Distribute photos in 2 rows of 3
-        const row = idx < 3 ? 0 : 1
-        const col = idx % 3
-
-        // Base positions for 2x3 grid
-        const baseX = col * 33.33 + 5 // 3 columns
-        const baseY = row * 50 + 5 // 2 rows
-
-        // Add some randomness to make it look natural
-        const randomX = (Math.random() - 0.5) * 20
-        const randomY = (Math.random() - 0.5) * 15
+        // Center position with small random offset for layered effect
+        const offsetX = (Math.random() - 0.5) * 200 // ±100px spread around center
+        const offsetY = (Math.random() - 0.5) * 150 // ±75px spread around center
 
         return {
           id: `photo-${idx}`,
           src,
-          rotation: Math.random() * 12 - 6,
-          left: `calc(${baseX}% + ${randomX}px)`,
-          top: `calc(${baseY}% + ${randomY}px)`,
+          rotation: Math.random() * 15 - 7.5,
+          left: `calc(50% - 140px + ${offsetX}px)`,
+          top: `calc(50% - 160px + ${offsetY}px)`,
+          zIndex: idx,
         }
       })
     setPhotos(shuffled as any)
@@ -98,7 +91,7 @@ export default function HomeScreen() {
       </header>
 
       {/* Polaroid gallery */}
-      <div className="flex-1 relative w-full mb-6 overflow-hidden">
+      <div className="flex-1 relative w-full mb-6 overflow-visible">
         {photos.map((photo: any) => (
           <div
             key={photo.id}
@@ -112,6 +105,7 @@ export default function HomeScreen() {
               padding: '12px',
               boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
               WebkitTransform: `rotate(${photo.rotation}deg)`,
+              zIndex: photo.zIndex,
             }}
           >
             <div className="w-full h-64 bg-gray-200 overflow-hidden">
