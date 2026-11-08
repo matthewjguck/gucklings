@@ -79,15 +79,15 @@ export default function HomeScreen() {
         if (zIndex === totalPhotos - 1) {
           // Highest z-index photo → top of screen
           offsetY = -200 + (Math.random() - 0.5) * 30 // Top area: -215 to -185
-          offsetX = (Math.random() - 0.5) * 120 // ±60px
+          offsetX = (Math.random() - 0.5) * 200 // ±100px horizontal spread
         } else if (zIndex === totalPhotos - 2) {
           // Second highest z-index → bottom of screen
           offsetY = 200 + (Math.random() - 0.5) * 30 // Bottom area: +185 to +215
-          offsetX = (Math.random() - 0.5) * 120 // ±60px
+          offsetX = (Math.random() - 0.5) * 200 // ±100px horizontal spread
         } else {
           // Other photos layer behind, spread freely
           offsetY = (Math.random() - 0.5) * 400 // Full vertical range
-          offsetX = (Math.random() - 0.5) * 150 // ±75px horizontal
+          offsetX = (Math.random() - 0.5) * 250 // ±125px horizontal spread
         }
 
         return {
