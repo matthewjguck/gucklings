@@ -11,10 +11,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Create Supabase client with service key
-      const supabase = createClient(
-        process.env.SUPABASE_URL || '',
-        process.env.SUPABASE_SERVICE_KEY || ''
-      )
+      const url = process.env.SUPABASE_URL || ''
+      const key = process.env.SUPABASE_SERVICE_KEY || ''
+
+      console.log('[print-api] Creating client with:', {
+        url: url ? 'set' : 'missing',
+        key: key ? 'set' : 'missing',
+        keyLength: key.length,
+      })
+
+      const supabase = createClient(url, key)
 
       // Store print job in Supabase
       const { data, error } = await supabase
