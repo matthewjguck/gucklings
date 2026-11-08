@@ -56,7 +56,8 @@ export default function Login() {
           <div className="flex items-center gap-2">
             <span className="text-mini text-text-primary font-semibold">+1</span>
             <input
-              type="text"
+              type="tel"
+              autoComplete="tel"
               inputMode="numeric"
               value={phone}
               onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
