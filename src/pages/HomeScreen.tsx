@@ -77,7 +77,7 @@ export default function HomeScreen() {
         left: 'calc(50% - 140px)', // Centered horizontally
         top: idx === 0
           ? 'calc(50% - 240px)' // Top photo
-          : 'calc(50% + 80px)', // Bottom photo
+          : 'calc(50% - 40px)', // Bottom photo (higher to avoid covering button)
         zIndex: idx,
       }))
     setPhotos(shuffled as any)
