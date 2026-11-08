@@ -60,9 +60,9 @@ export default function HomeScreen() {
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
       .map((src, idx) => {
-        // Center position with small random offset for layered effect
-        const offsetX = (Math.random() - 0.5) * 200 // ±100px spread around center
-        const offsetY = (Math.random() - 0.5) * 150 // ±75px spread around center
+        // Center position with random offset for vertical layered effect
+        const offsetX = (Math.random() - 0.5) * 100 // ±50px horizontal spread
+        const offsetY = (Math.random() - 0.5) * 300 // ±150px vertical spread
 
         return {
           id: `photo-${idx}`,
