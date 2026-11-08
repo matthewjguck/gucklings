@@ -70,11 +70,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    // Normalize phone number: add +1 if not present
+    let normalizedPhone = phone.trim()
+    if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+1' + normalizedPhone.replace(/\D/g, '')
+    }
+
     // Verify phone + passcode against database
     const { data, error: queryError } = await supabase
       .from('profiles')
       .select('id, phone_number, passcode_hash')
-      .eq('phone_number', phone)
+      .eq('phone_number', normalizedPhone)
       .single()
 
     if (queryError || !data) {
@@ -89,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Sign in with Supabase using their ID
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: `${phone}@gucklings.local`,
+      email: `${normalizedPhone}@gucklings.local`,
       password: passcode,
     })
     if (signInError) throw signInError
