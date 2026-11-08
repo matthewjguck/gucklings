@@ -78,11 +78,11 @@ export default function HomeScreen() {
         // Top 2 visible photos (highest z-indices) - positioned at screen top and bottom
         if (zIndex === totalPhotos - 1) {
           // Highest z-index photo → top of screen
-          offsetY = -280 + (Math.random() - 0.5) * 30 // Top area: -295 to -265
+          offsetY = -200 + (Math.random() - 0.5) * 30 // Top area: -215 to -185
           offsetX = (Math.random() - 0.5) * 120 // ±60px
         } else if (zIndex === totalPhotos - 2) {
           // Second highest z-index → bottom of screen
-          offsetY = 280 + (Math.random() - 0.5) * 30 // Bottom area: +265 to +295
+          offsetY = 200 + (Math.random() - 0.5) * 30 // Bottom area: +185 to +215
           offsetX = (Math.random() - 0.5) * 120 // ±60px
         } else {
           // Other photos layer behind, spread freely
