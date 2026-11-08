@@ -66,23 +66,26 @@ export default function HomeScreen() {
 
   useEffect(() => {
     // Generate randomized polaroid positions in a centered layered collage
-    // Ensure first 2 photos are far apart for visibility
+    // Highest z-index photos appear on top visually, so position them at screen top
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
       .map((src, idx) => {
         let offsetY: number
         let offsetX: number
+        const totalPhotos = FAMILY_PHOTOS.length
+        const zIndex = totalPhotos - 1 - idx // Reverse: last photo gets highest z-index
 
-        // Ensure first photo at top, second at bottom for visibility - no touching
-        // Photos are 320px tall, so minimum gap needed is 320px
-        if (idx === 0) {
+        // Top 2 visible photos (highest z-indices) - positioned at screen top and bottom
+        if (zIndex === totalPhotos - 1) {
+          // Highest z-index photo → top of screen
           offsetY = -280 + (Math.random() - 0.5) * 30 // Top area: -295 to -265
-          offsetX = (Math.random() - 0.5) * 120 // ±60px for first
-        } else if (idx === 1) {
+          offsetX = (Math.random() - 0.5) * 120 // ±60px
+        } else if (zIndex === totalPhotos - 2) {
+          // Second highest z-index → bottom of screen
           offsetY = 280 + (Math.random() - 0.5) * 30 // Bottom area: +265 to +295
-          offsetX = (Math.random() - 0.5) * 120 // ±60px for second
+          offsetX = (Math.random() - 0.5) * 120 // ±60px
         } else {
-          // Other photos can spread across full range (they layer behind top 2)
+          // Other photos layer behind, spread freely
           offsetY = (Math.random() - 0.5) * 400 // Full vertical range
           offsetX = (Math.random() - 0.5) * 150 // ±75px horizontal
         }
@@ -93,7 +96,7 @@ export default function HomeScreen() {
           rotation: Math.random() * 15 - 7.5,
           left: `calc(50% - 140px + ${offsetX}px)`,
           top: `calc(50% - 160px + ${offsetY}px)`,
-          zIndex: idx,
+          zIndex,
         }
       })
     setPhotos(shuffled as any)
