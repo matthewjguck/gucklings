@@ -18,6 +18,7 @@ import OnboardSent from '@/pages/onboarding/OnboardSent'
 import VerifyEmail from '@/pages/VerifyEmail'
 import Privacy from '@/pages/Privacy'
 import Terms from '@/pages/Terms'
+import PrintingConfirmation from '@/pages/PrintingConfirmation'
 
 const SPLASH_SEEN_KEY = 'gucklings.splashSeen'
 
@@ -33,6 +34,7 @@ function AnimatedRoutes() {
         <Route path="/friends" element={<ProtectedRoute><FriendsScreen /></ProtectedRoute>} />
         <Route path="/friends/:id" element={<ProtectedRoute><FriendDetailScreen /></ProtectedRoute>} />
         <Route path="/compose" element={<ProtectedRoute><ReceiptEditor /></ProtectedRoute>} />
+        <Route path="/printing-confirmation" element={<ProtectedRoute><PrintingConfirmation /></ProtectedRoute>} />
         <Route path="/receipt-sent" element={<ProtectedRoute><ReceiptSent /></ProtectedRoute>} />
         <Route path="/prints" element={<ProtectedRoute><PrintingScreen /></ProtectedRoute>} />
         <Route path="/test-print" element={<TestPrintScreen />} />

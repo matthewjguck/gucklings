@@ -243,75 +243,23 @@ export default function ReceiptEditor() {
       // Extract just the base64 part (remove "data:image/png;base64," prefix)
       const receiptImageBase64 = imageBase64?.replace(/^data:image\/\w+;base64,/, '') || ''
 
-      // If recipient is pre-selected (home flow), send directly
-      if (recipientEmail || recipientFriendId) {
-        // Verify sender is authenticated - if not, redirect to login
-        if (!user?.email) {
-          console.error('[ReceiptEditor] Sender not authenticated, redirecting to login:', { user })
-          navigate('/login')
-          return
-        }
-
-        // Construct recipient email (allow any email, including new/unverified ones)
-        const email = recipientEmail || (recipientFriendId ? `${recipientFriendId}@stanford.edu` : null)
-        if (!email) {
-          console.error('[ReceiptEditor] Missing recipient email')
-          throw new Error('Missing recipient email')
-        }
-
-        // Get sender name from metadata with fallbacks
-        let senderName = user.user_metadata?.display_name as string | undefined
-        if (!senderName && user.user_metadata?.full_name) {
-          senderName = (user.user_metadata.full_name as string).split(' ')[0]
-        }
-        if (!senderName) {
-          senderName = user.email.split('@')[0]
-        }
-
-        console.log('[ReceiptEditor] Sending receipt:', { email, senderName })
-
-        // Send via edge function
-        if (supabase) {
-          console.log('[ReceiptEditor] Sending receipt to', email, 'with bitmap length:', receiptImageBase64?.length || 0)
-          const { error: invokeErr } = await supabase.functions.invoke('send-recipt-email', {
-            body: {
-              recipientEmail: email,
-              senderName,
-              content: {
-                blocks,
-                prompt: '',
-                signature,
-                headerVariant,
-              },
-              receiptImage: receiptImageBase64,
-            },
-          })
-          if (invokeErr) {
-            console.error('[ReceiptEditor] Edge function error:', invokeErr)
-            throw invokeErr
-          }
-          console.log('[ReceiptEditor] Receipt sent successfully')
-        }
-
-        clearDraft()
-        navigate('/receipt-sent', {
-          state: {
-            recipientLabel: email,
-          },
-        })
-      } else {
-        // No pre-selected recipient (onboarding flow), save to draft and navigate to recipient selection
-        saveDraft({
-          content: {
-            blocks,
-            prompt: '',
-            signature,
-            headerVariant,
-            receiptImage: receiptImageBase64,
-          },
-        })
-        navigate('/onboard/recipient')
+      // Get sender name from metadata with fallbacks
+      let senderName = user?.user_metadata?.display_name as string | undefined
+      if (!senderName && user?.user_metadata?.full_name) {
+        senderName = (user.user_metadata.full_name as string).split(' ')[0]
       }
+      if (!senderName) {
+        senderName = user?.email?.split('@')[0] || 'Family'
+      }
+
+      // Navigate to printing confirmation to show receipt and wait for print confirmation
+      clearDraft()
+      navigate('/printing-confirmation', {
+        state: {
+          receiptImage: receiptImageBase64,
+          senderName,
+        },
+      })
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to generate receipt image'
       console.error('Failed to generate receipt image:', err)

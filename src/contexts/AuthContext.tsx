@@ -11,14 +11,14 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-const MOCK_USER_EMAIL_KEY = 'capstone.mock.user.email'
+const PERSISTED_USER_KEY = 'gucklings.auth.user'
 
-function createMockUser(email: string) {
+function createMockUser(email: string, id: string, displayName?: string) {
   return {
-    id: 'mock-user',
+    id,
     aud: 'authenticated',
-    app_metadata: { provider: 'email', providers: ['email'] },
-    user_metadata: {},
+    app_metadata: { provider: 'phone', providers: ['phone'] },
+    user_metadata: { phone: email, display_name: displayName },
     created_at: new Date(0).toISOString(),
     email,
   } as User
@@ -26,12 +26,20 @@ function createMockUser(email: string) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
-    if (supabase || typeof window === 'undefined') {
+    if (typeof window === 'undefined') {
       return null
     }
 
-    const email = window.localStorage.getItem(MOCK_USER_EMAIL_KEY)
-    return email ? createMockUser(email) : null
+    const stored = window.localStorage.getItem(PERSISTED_USER_KEY)
+    if (stored) {
+      try {
+        return JSON.parse(stored) as User
+      } catch (e) {
+        console.error('Failed to parse stored user:', e)
+        return null
+      }
+    }
+    return null
   })
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(Boolean(supabase))
@@ -70,47 +78,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Normalize phone number: add +1 if not present
-    let normalizedPhone = phone.trim()
-    if (!normalizedPhone.startsWith('+')) {
-      normalizedPhone = '+1' + normalizedPhone.replace(/\D/g, '')
-    }
+    // Normalize phone number to digits only for comparison (add country code if missing)
+    const phoneDigits = parseInt('1' + phone.replace(/\D/g, ''), 10)
 
     // Verify phone + passcode against database
-    const { data, error: queryError } = await supabase
+    const { data: allProfiles, error: queryError } = await supabase
       .from('profiles')
-      .select('id, phone_number, passcode_hash')
-      .eq('phone_number', normalizedPhone)
-      .single()
+      .select('id, phone_number, passcode_hash, display_name')
 
-    if (queryError || !data) {
+    if (queryError || !allProfiles) {
+      throw new Error('Unable to verify phone number')
+    }
+
+    // Find profile matching phone number (now stored as bigint)
+    const data = allProfiles.find(p =>
+      p.phone_number === phoneDigits
+    )
+
+    if (!data) {
       throw new Error('Phone number not found. Contact your family to be added.')
     }
 
     // Simple passcode verification (in production, use bcrypt)
-    // For now, comparing plaintext - should be hashed in real implementation
     if (data.passcode_hash !== passcode) {
       throw new Error('Incorrect passcode')
     }
 
-    // Sign in with Supabase using their ID
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: `${normalizedPhone}@gucklings.local`,
-      password: passcode,
-    })
-    if (signInError) throw signInError
+    // Create a mock authenticated user from the profile
+    const mockUser = {
+      id: data.id,
+      aud: 'authenticated',
+      app_metadata: { provider: 'phone', providers: ['phone'] },
+      user_metadata: { phone: phoneDigits, display_name: data.display_name },
+      created_at: new Date().toISOString(),
+      email: `${phoneDigits}@gucklings.local`,
+    } as User
+
+    // Persist user to localStorage
+    window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
+    setUser(mockUser)
+    setSession(null)
   }
 
   const signOut = async () => {
-    if (!supabase) {
-      window.localStorage.removeItem(MOCK_USER_EMAIL_KEY)
-      setUser(null)
-      setSession(null)
-      return
-    }
+    // Clear persisted user
+    window.localStorage.removeItem(PERSISTED_USER_KEY)
+    setUser(null)
+    setSession(null)
 
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    if (supabase) {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+    }
   }
 
   return (
