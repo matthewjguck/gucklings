@@ -3,24 +3,17 @@
 ## How to Log In
 
 1. Go to https://gucklings.vercel.app (when deployed)
-2. Enter your **phone number** from the list below
-3. Enter the **family passcode** (same for everyone)
+2. Enter your **phone number** (given to you privately)
+3. Enter the **family passcode** (shared in private message)
 4. Click "Continue"
 
 ---
 
-## Family Phone Numbers & Passcode
+## Your Login Info
 
-| Name | Phone | Status |
-|------|-------|--------|
-| Chris | +1-903-445-7839 | ✅ Ready |
-| Matthew | +1-903-445-5904 | ✅ Ready |
-| Stephanie | +1-903-445-6139 | ✅ Ready |
-| Cookie | +1-903-445-4552 | ✅ Ready |
-| Mom | +1-903-240-7786 | ✅ Ready |
-| Dad | +1-903-220-8120 | ✅ Ready |
+Your phone number and passcode were shared with you privately via Signal/text.
 
-**Family Passcode:** `Gucklings2024!`
+**Keep these secret!** Do not share in group chats, screenshots, or emails.
 
 ---
 

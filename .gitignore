@@ -35,3 +35,7 @@ dist-ssr
 __pycache__/
 *.pyc
 .venv/
+
+# Private files (contains real phone numbers)
+supabase/seed-family.sql
+supabase/seed*.private.sql

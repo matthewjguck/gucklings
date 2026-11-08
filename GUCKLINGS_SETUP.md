@@ -87,26 +87,28 @@ Gucklings uses a **phone number + family passcode** system. No SMS costs, comple
 
 ### Set up family members
 
-#### Quick Setup (Gucklings provided family list)
+#### Quick Setup (with family list)
 
-If using the provided family, simply run `supabase/seed.sql` after `schema.sql`:
+If you have a private family list with phone numbers:
 
 1. Go to Supabase **SQL Editor**
 2. Copy and paste the contents of `supabase/schema.sql` and run it
-3. Copy and paste the contents of `supabase/seed.sql` and run it
-4. Done! All family members are pre-loaded
+3. Open your private `supabase/seed-family.sql` file (NOT in git)
+4. Copy and paste the contents and run it
+5. Done! All family members are pre-loaded
 
-**Pre-loaded family:**
-- Chris: +1-903-445-7839
-- Matthew: +1-903-445-5904
-- Stephanie: +1-903-445-6139
-- Cookie: +1-903-445-4552
-- Mom: +1-903-240-7786
-- Dad: +1-903-220-8120
+**Private file security:**
+- `supabase/seed-family.sql` is in `.gitignore` (never committed to GitHub)
+- Contains real phone numbers - keep it private!
+- Store only locally and in a password manager if needed
+- Never share this file in group chats, email, or version control
 
-**Default passcode:** `Gucklings2024!`
+**Reference for creating your own:**
+- Use `supabase/seed-example.sql` as a template
+- Replace placeholder phone numbers with real ones
+- Save as `supabase/seed-family.sql` (gets ignored by git)
 
-> ⚠️ **Security:** Change this passcode after first login! Update it in the database or create individual passcodes per person.
+**Default passcode:** `Gucklings2024!` (change after first login)
 
 #### Custom family setup
 
@@ -204,10 +206,7 @@ npm run dev
 ```
 
 1. Go to http://localhost:5173/login
-2. Enter a family member's phone number:
-   - Matthew: `+1-903-445-5904`
-   - Chris: `+1-903-445-7839`
-   - Or any from the list above
+2. Enter any family member's phone number from your seed data
 3. Enter the family passcode: `Gucklings2024!`
 4. Should log in to home screen
 
