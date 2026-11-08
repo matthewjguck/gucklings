@@ -11,9 +11,8 @@ import FontWeightSlider from '@/components/canvas/FontWeightSlider'
 import RedactionLevelSlider from '@/components/canvas/RedactionLevelSlider'
 import ImageAdjustmentPanel from '@/components/canvas/ImageAdjustmentPanel'
 import { DEFAULT_ADJUSTMENTS } from '@/lib/imageProcessing'
-import { loadDraft, saveDraft, clearDraft } from '@/lib/onboardingDraft'
+import { loadDraft, clearDraft } from '@/lib/onboardingDraft'
 import { renderToPrintBuffer } from '@/lib/escpos'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Block, TextStyle, Signature, CornerSticker } from '@/types/canvas'
 import { newBlockId, STYLE_LABELS } from '@/types/canvas'
@@ -57,7 +56,6 @@ export default function ReceiptEditor() {
   })
   const [signatureActive, setSignatureActive] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const headerVariant = 'simple' as const
   const receiptRef = useRef<HTMLDivElement>(null)
   const signatureAreaRef = useRef<HTMLDivElement>(null)
   const recipientNameRef = useRef<HTMLDivElement>(null)

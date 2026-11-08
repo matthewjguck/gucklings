@@ -86,15 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: allProfiles, error: queryError } = await supabase
       .from('profiles')
       .select('id, phone_number, passcode_hash, display_name')
+      .returns<Array<{ id: string; phone_number: number; passcode_hash: string; display_name: string }>>()
 
     if (queryError || !allProfiles) {
       throw new Error('Unable to verify phone number')
     }
 
     // Find profile matching phone number (now stored as bigint)
-    const data = allProfiles?.find(p =>
-      p?.phone_number === phoneDigits
-    )
+    const data = allProfiles.find(p => p.phone_number === phoneDigits)
 
     if (!data) {
       throw new Error('Phone number not found. Contact your family to be added.')
