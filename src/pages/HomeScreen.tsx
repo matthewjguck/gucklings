@@ -74,14 +74,15 @@ export default function HomeScreen() {
         let offsetX: number
 
         // Ensure first photo at top, second at bottom for visibility - no touching
+        // Photos are 320px tall, so minimum gap needed is 320px
         if (idx === 0) {
-          offsetY = -240 + (Math.random() - 0.5) * 40 // Top area, further up
+          offsetY = -280 + (Math.random() - 0.5) * 30 // Top area: -295 to -265
           offsetX = (Math.random() - 0.5) * 120 // ±60px for first
         } else if (idx === 1) {
-          offsetY = 240 + (Math.random() - 0.5) * 40 // Bottom area, further down
+          offsetY = 280 + (Math.random() - 0.5) * 30 // Bottom area: +265 to +295
           offsetX = (Math.random() - 0.5) * 120 // ±60px for second
         } else {
-          offsetY = (Math.random() - 0.5) * 360 // Wider vertical range
+          offsetY = (Math.random() - 0.5) * 360 // Wider vertical range for others
           offsetX = (Math.random() - 0.5) * 150 // ±75px horizontal
         }
 
