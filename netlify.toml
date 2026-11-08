@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Force browsers to revalidate the HTML on every visit so they always
+# discover the latest hashed JS/CSS bundle filenames. Without this,
+# users keep getting the old index.html (cached) which references the
+# old asset filenames, and never see new deploys until they manually
+# clear cache.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# The hashed assets in /assets/ can be cached aggressively because their
+# filenames change when content changes.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
