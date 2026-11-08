@@ -57,12 +57,22 @@ export default function HomeScreen() {
 
   useEffect(() => {
     // Generate randomized polaroid positions in a centered layered collage
+    // Ensure first 2 photos are far apart for visibility
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
       .map((src, idx) => {
-        // Center position with random offset for vertical layered effect
+        let offsetY: number
+
+        // Ensure first photo at top, second at bottom for visibility
+        if (idx === 0) {
+          offsetY = -150 + (Math.random() - 0.5) * 40 // Top area
+        } else if (idx === 1) {
+          offsetY = 150 + (Math.random() - 0.5) * 40 // Bottom area
+        } else {
+          offsetY = (Math.random() - 0.5) * 300 // Random for others
+        }
+
         const offsetX = (Math.random() - 0.5) * 100 // ±50px horizontal spread
-        const offsetY = (Math.random() - 0.5) * 300 // ±150px vertical spread
 
         return {
           id: `photo-${idx}`,
