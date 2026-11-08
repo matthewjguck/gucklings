@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
-  phone_number TEXT UNIQUE,
+  phone_number TEXT UNIQUE NOT NULL,
+  passcode_hash TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

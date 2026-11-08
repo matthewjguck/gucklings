@@ -6,8 +6,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  sendOTP: (phone: string) => Promise<void>
-  verifyOTP: (phone: string, token: string) => Promise<void>
+  signIn: (phone: string, passcode: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -59,36 +58,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const sendOTP = async (phone: string) => {
+  const signIn = async (phone: string, passcode: string) => {
     if (!supabase) {
-      // Mock: just accept any phone number in dev
-      if (!phone) {
-        throw new Error('Phone number is required')
+      // Mock: accept any phone + passcode in dev
+      if (!phone || !passcode) {
+        throw new Error('Phone and passcode are required')
       }
-      return
-    }
-
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-    })
-    if (error) throw error
-  }
-
-  const verifyOTP = async (phone: string, token: string) => {
-    if (!supabase) {
-      // Mock: create mock user with phone
       window.localStorage.setItem(MOCK_USER_EMAIL_KEY, phone)
       setUser(createMockUser(phone))
       setSession(null)
       return
     }
 
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
+    // Verify phone + passcode against database
+    const { data, error: queryError } = await supabase
+      .from('profiles')
+      .select('id, phone_number, passcode_hash')
+      .eq('phone_number', phone)
+      .single()
+
+    if (queryError || !data) {
+      throw new Error('Phone number not found. Contact your family to be added.')
+    }
+
+    // Simple passcode verification (in production, use bcrypt)
+    // For now, comparing plaintext - should be hashed in real implementation
+    if (data.passcode_hash !== passcode) {
+      throw new Error('Incorrect passcode')
+    }
+
+    // Sign in with Supabase using their ID
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: `${phone}@gucklings.local`,
+      password: passcode,
     })
-    if (error) throw error
+    if (signInError) throw signInError
   }
 
   const signOut = async () => {
@@ -104,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, sendOTP, verifyOTP, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

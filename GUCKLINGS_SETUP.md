@@ -76,25 +76,42 @@ POLL_INTERVAL=3
 
 ## 3. Authentication Setup
 
-Gucklings uses **Supabase Phone OTP** for family authentication.
+Gucklings uses a **phone number + family passcode** system. No SMS costs, completely free!
 
-### Enable Phone OTP in Supabase
+### How it works
 
-1. Go to **Authentication → Providers**
-2. Enable "Phone" provider
-3. Configure SMS service:
-   - Free tier: Use Twilio (requires account and credits)
-   - Or use Supabase's built-in OTP (SMS requires payment)
-4. Copy your phone OTP settings
+- Family members log in with their phone number + a shared family passcode
+- Phone numbers are stored in the `profiles` table
+- Passcodes are hashed and stored in `passcode_hash` field
+- Only pre-registered family members can access the app
 
-### Add family members to Supabase
+### Set up family members
 
-The app currently requires:
-- Phone number in international format (e.g., +12025551234)
-- Family members self-register via OTP on first login
-- Optional: Pre-populate a whitelist of allowed phone numbers
+After initializing the database, add family members manually using Supabase's SQL editor or admin panel:
 
-> **TODO:** Add family member phone whitelist to `AuthContext.tsx` if needed.
+```sql
+-- Insert a family member (change values as needed)
+INSERT INTO profiles (id, phone_number, passcode_hash, display_name)
+VALUES (
+  gen_random_uuid(),
+  '+1-555-123-4567',
+  'familypasscode123',  -- In production, hash this with bcrypt
+  'Matthew'
+);
+```
+
+Or add via Supabase dashboard:
+1. Go to **SQL Editor**
+2. Run the above SQL with your family members' info
+3. Phone numbers should be in format: +1-555-123-4567
+4. Passcode is stored plaintext (TODO: hash with bcrypt in production)
+
+### Add/remove family members
+
+Family members must be pre-registered in the database. To add someone new:
+1. Get their phone number
+2. Insert a new row in the `profiles` table
+3. They can then log in with their phone + family passcode
 
 ## 4. Deploy to Vercel
 
@@ -154,16 +171,16 @@ Configure printer IP in `.env` instead of USB connection.
 
 ## 6. Testing
 
-### Test phone OTP login
+### Test login with phone + passcode
 
 ```bash
 npm run dev
 ```
 
 1. Go to http://localhost:5173/login
-2. Enter a test phone number
-3. Check Supabase logs for the OTP code (or check Twilio dashboard)
-4. Enter code and verify
+2. Enter a family member's phone number (e.g., +1-555-123-4567)
+3. Enter the family passcode
+4. Should log in to home screen
 
 ### Test letter composition
 
@@ -183,7 +200,7 @@ npm run dev
 ## 7. Deployment Checklist
 
 - [ ] Supabase project created and schema initialized
-- [ ] Phone OTP provider enabled
+- [ ] Family members added to profiles table with phone + passcode
 - [ ] Environment variables set for web app
 - [ ] Environment variables set for print server
 - [ ] Web app deployed to Vercel
