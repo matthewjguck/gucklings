@@ -1,11 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_KEY || ''
-)
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
     try {
@@ -14,6 +9,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!receiptImage) {
         return res.status(400).json({ error: 'receiptImage is required' })
       }
+
+      // Create Supabase client with service key
+      const supabase = createClient(
+        process.env.SUPABASE_URL || '',
+        process.env.SUPABASE_SERVICE_KEY || ''
+      )
 
       // Store print job in Supabase
       const { data, error } = await supabase
@@ -37,12 +38,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error('Print API error:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
-  }
-
-  if (req.method === 'GET') {
+  } else if (req.method === 'GET') {
     // Health check
     return res.status(200).json({ status: 'ok' })
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
-
-  return res.status(405).json({ error: 'Method not allowed' })
 }
