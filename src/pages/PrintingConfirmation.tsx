@@ -53,7 +53,7 @@ export default function PrintingConfirmation() {
       while (!printConfirmed && pollCount < maxPolls) {
         await new Promise(resolve => setTimeout(resolve, 1000))
 
-        const statusResponse = await fetch(`/api/print/${data.jobId}`)
+        const statusResponse = await fetch(`/api/print?jobId=${data.jobId}`)
         if (statusResponse.ok) {
           const statusData = await statusResponse.json()
           if (statusData.status === 'printed') {

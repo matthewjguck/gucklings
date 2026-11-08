@@ -2,6 +2,46 @@ import { VercelRequest, VercelResponse } from '@vercel/node'
 import { createClient } from '@supabase/supabase-js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'GET') {
+    // Get print job status via query parameter
+    try {
+      const jobId = req.query.jobId as string | undefined
+
+      if (!jobId) {
+        return res.status(200).json({ status: 'ok' })
+      }
+
+      // Create Supabase client with anon key (public reads only)
+      const supabase = createClient(
+        process.env.SUPABASE_URL || '',
+        process.env.SUPABASE_ANON_KEY || ''
+      )
+
+      // Get print job status
+      const { data, error } = await supabase
+        .from('print_jobs')
+        .select('id, status, error_message, created_at, updated_at')
+        .eq('id', jobId)
+        .single()
+
+      if (error) {
+        console.error('[print-api] Supabase error getting status:', error)
+        return res.status(404).json({ error: 'Print job not found' })
+      }
+
+      return res.status(200).json({
+        jobId: data.id,
+        status: data.status,
+        errorMessage: data.error_message,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      })
+    } catch (err) {
+      console.error('[print-api] Status error:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  }
+
   if (req.method === 'POST') {
     try {
       const { receiptImage, senderName } = req.body
