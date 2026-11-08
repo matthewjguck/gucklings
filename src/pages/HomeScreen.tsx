@@ -18,8 +18,8 @@ interface PolaroidPhoto {
   id: string
   src: string
   rotation: number
-  x: number
-  y: number
+  left: string
+  top: string
 }
 
 export default function HomeScreen() {
@@ -56,17 +56,31 @@ export default function HomeScreen() {
   }, [user?.id, user?.email])
 
   useEffect(() => {
-    // Generate randomized polaroid positions
+    // Generate randomized polaroid positions spread across the container
     const shuffled = FAMILY_PHOTOS
       .sort(() => Math.random() - 0.5)
-      .map((src, idx) => ({
-        id: `photo-${idx}`,
-        src,
-        rotation: Math.random() * 12 - 6, // -6 to 6 degrees
-        x: Math.random() * 60 - 30, // -30 to 30% offset (wider spread)
-        y: Math.random() * 50 - 25, // -25 to 25% offset (taller spread)
-      }))
-    setPhotos(shuffled)
+      .map((src, idx) => {
+        // Distribute photos in 2 rows of 3
+        const row = idx < 3 ? 0 : 1
+        const col = idx % 3
+
+        // Base positions for 2x3 grid
+        const baseX = col * 33.33 + 5 // 3 columns
+        const baseY = row * 50 + 5 // 2 rows
+
+        // Add some randomness to make it look natural
+        const randomX = (Math.random() - 0.5) * 20
+        const randomY = (Math.random() - 0.5) * 15
+
+        return {
+          id: `photo-${idx}`,
+          src,
+          rotation: Math.random() * 12 - 6,
+          left: `calc(${baseX}% + ${randomX}px)`,
+          top: `calc(${baseY}% + ${randomY}px)`,
+        }
+      })
+    setPhotos(shuffled as any)
   }, [])
 
   const handleSendClick = () => {
@@ -85,30 +99,31 @@ export default function HomeScreen() {
 
       {/* Polaroid gallery */}
       <div className="flex-1 relative w-full mb-6 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          {photos.map((photo) => (
-            <div
-              key={photo.id}
-              className="absolute bg-white shadow-xl"
-              style={{
-                width: '280px',
-                height: '320px',
-                transform: `translate(${photo.x}%, ${photo.y}%) rotate(${photo.rotation}deg)`,
-                padding: '12px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
-              }}
-            >
-              <div className="w-full h-64 bg-gray-200 overflow-hidden">
-                <img
-                  src={photo.src}
-                  alt="Family"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="h-8 bg-white" />
+        {photos.map((photo: any) => (
+          <div
+            key={photo.id}
+            className="absolute bg-white shadow-xl"
+            style={{
+              width: '280px',
+              height: '320px',
+              left: photo.left,
+              top: photo.top,
+              transform: `rotate(${photo.rotation}deg)`,
+              padding: '12px',
+              boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
+              WebkitTransform: `rotate(${photo.rotation}deg)`,
+            }}
+          >
+            <div className="w-full h-64 bg-gray-200 overflow-hidden">
+              <img
+                src={photo.src}
+                alt="Family"
+                className="w-full h-full object-cover"
+              />
             </div>
-          ))}
-        </div>
+            <div className="h-8 bg-white" />
+          </div>
+        ))}
       </div>
 
       {/* Send button */}
