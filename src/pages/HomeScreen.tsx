@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { clearDraft } from '@/lib/onboardingDraft'
+import { supabase } from '@/lib/supabase'
 import PageTransition from '@/components/PageTransition'
 
 const FAMILY_PHOTOS = [
@@ -28,13 +29,31 @@ export default function HomeScreen() {
   const [displayName, setDisplayName] = useState('')
 
   useEffect(() => {
-    // Get display name from user metadata
-    if (user?.user_metadata?.display_name) {
-      setDisplayName(user.user_metadata.display_name)
-    } else if (user?.email) {
-      setDisplayName(user.email.split('@')[0])
+    // Get display name from profiles table
+    const fetchDisplayName = async () => {
+      if (!user?.id) return
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .single()
+
+        if (data?.display_name) {
+          setDisplayName(data.display_name)
+        } else if (user?.email) {
+          setDisplayName(user.email.split('@')[0])
+        }
+      } catch (err) {
+        // Fallback to email if query fails
+        if (user?.email) {
+          setDisplayName(user.email.split('@')[0])
+        }
+      }
     }
-  }, [user])
+
+    fetchDisplayName()
+  }, [user?.id, user?.email])
 
   useEffect(() => {
     // Generate randomized polaroid positions
@@ -43,9 +62,9 @@ export default function HomeScreen() {
       .map((src, idx) => ({
         id: `photo-${idx}`,
         src,
-        rotation: Math.random() * 8 - 4, // -4 to 4 degrees
-        x: Math.random() * 40 - 20, // -20 to 20% offset
-        y: Math.random() * 30 - 15, // -15 to 15% offset
+        rotation: Math.random() * 12 - 6, // -6 to 6 degrees
+        x: Math.random() * 60 - 30, // -30 to 30% offset (wider spread)
+        y: Math.random() * 50 - 25, // -25 to 25% offset (taller spread)
       }))
     setPhotos(shuffled)
   }, [])
@@ -57,9 +76,9 @@ export default function HomeScreen() {
 
   return (
     <PageTransition className="flex h-screen flex-col bg-bg-base px-6 pt-8 pb-8 overflow-hidden">
-      {/* Welcome header */}
-      <header className="mb-4">
-        <h1 className="text-3xl font-bold text-text-primary">
+      {/* Welcome header - centered */}
+      <header className="mb-6 text-center">
+        <h1 className="text-4xl font-bold text-text-primary">
           Welcome, {displayName}
         </h1>
       </header>
@@ -70,23 +89,23 @@ export default function HomeScreen() {
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="absolute bg-white shadow-lg"
+              className="absolute bg-white shadow-xl"
               style={{
-                width: '140px',
-                height: '160px',
+                width: '280px',
+                height: '320px',
                 transform: `translate(${photo.x}%, ${photo.y}%) rotate(${photo.rotation}deg)`,
-                padding: '8px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                padding: '12px',
+                boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
               }}
             >
-              <div className="w-full h-32 bg-gray-200 overflow-hidden">
+              <div className="w-full h-64 bg-gray-200 overflow-hidden">
                 <img
                   src={photo.src}
                   alt="Family"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="h-6 bg-white" />
+              <div className="h-8 bg-white" />
             </div>
           ))}
         </div>
