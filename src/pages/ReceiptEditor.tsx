@@ -17,7 +17,6 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Block, TextStyle, Signature, CornerSticker } from '@/types/canvas'
 import { newBlockId, STYLE_LABELS } from '@/types/canvas'
-import headerLogoSvg from '@/assets/icons/header-logo.svg'
 import recipientBarSvg from '@/assets/icons/recipient-bar.svg'
 
 export default function ReceiptEditor() {
@@ -429,7 +428,7 @@ export default function ReceiptEditor() {
         <div className="p-5 space-y-3">
           {/* Header */}
           <div className="mb-4 mt-6 flex justify-center">
-            <img src={headerLogoSvg} alt="Gucklings" className="h-auto max-w-full" />
+            <img src="/gucklings-logo.svg" alt="Gucklings" className="h-auto max-w-full" />
           </div>
 
           {/* Recipient Bar */}
