@@ -233,7 +233,7 @@ export default function ReceiptEditor() {
 
       // Render receipt to ESC/POS buffer
       console.log('[ReceiptEditor] Starting bitmap capture...')
-      const { buffer } = await renderToPrintBuffer(cleanReceipt)
+      const { buffer, imageBase64 } = await renderToPrintBuffer(cleanReceipt)
       document.body.removeChild(cleanReceipt)
       console.log('[ReceiptEditor] Bitmap captured, ESC/POS buffer length:', buffer.length)
 
@@ -259,6 +259,7 @@ export default function ReceiptEditor() {
       navigate('/printing-confirmation', {
         state: {
           receiptImage: receiptImageBase64,
+          previewImage: imageBase64,
           senderName,
         },
       })
