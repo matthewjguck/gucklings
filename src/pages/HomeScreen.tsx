@@ -76,7 +76,7 @@ export default function HomeScreen() {
         rotation: Math.random() * 15 - 7.5,
         left: 'calc(50% - 140px)', // Centered horizontally
         top: idx === 0
-          ? 'calc(50% - 240px)' // Top photo
+          ? 'calc(50% - 312px)' // Top photo (raised 30%)
           : 'calc(50% - 40px)', // Bottom photo (higher to avoid covering button)
         zIndex: idx,
       }))
