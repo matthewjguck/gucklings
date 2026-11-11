@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
 
 interface AuthContextType {
   user: User | null
@@ -11,121 +10,110 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-const PERSISTED_USER_KEY = 'gucklings.auth.user'
 
-function createMockUser(email: string, id: string, displayName?: string) {
-  return {
-    id,
-    aud: 'authenticated',
-    app_metadata: { provider: 'phone', providers: ['phone'] },
-    user_metadata: { phone: email, display_name: displayName },
-    created_at: new Date(0).toISOString(),
-    email,
-  } as User
+interface SessionResponse {
+  user: {
+    id: string
+    email: string
+    user_metadata: {
+      phone?: string
+      display_name?: string
+    }
+  }
+  sessionToken?: string
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') {
-      return null
-    }
-
-    const stored = window.localStorage.getItem(PERSISTED_USER_KEY)
-    if (stored) {
-      try {
-        return JSON.parse(stored) as User
-      } catch (e) {
-        console.error('Failed to parse stored user:', e)
-        return null
-      }
-    }
-    return null
-  })
+  const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(Boolean(supabase))
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabase) {
-      return
+    const initializeSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', {
+          method: 'GET',
+          credentials: 'include',
+        })
+
+        if (response.ok) {
+          const data = (await response.json()) as SessionResponse
+          const mockUser = {
+            id: data.user.id,
+            aud: 'authenticated',
+            app_metadata: { provider: 'phone', providers: ['phone'] },
+            user_metadata: data.user.user_metadata,
+            created_at: new Date(0).toISOString(),
+            email: data.user.email,
+          } as User
+          setUser(mockUser)
+          setSession(null)
+        } else {
+          setUser(null)
+          setSession(null)
+        }
+      } catch (error) {
+        console.error('[AuthContext] Failed to initialize session:', error)
+        setUser(null)
+        setSession(null)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+    initializeSession()
   }, [])
 
   const signIn = async (phone: string, passcode: string) => {
-    if (!supabase) {
-      // Mock: accept any phone + passcode in dev
-      if (!phone || !passcode) {
-        throw new Error('Phone and passcode are required')
+    if (!phone || !passcode) {
+      throw new Error('Phone and passcode are required')
+    }
+
+    try {
+      const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phone, passcode }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Login failed')
       }
-      const mockUser = createMockUser(phone, 'mock-user')
-      window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
+
+      const data = (await response.json()) as SessionResponse
+      const mockUser = {
+        id: data.user.id,
+        aud: 'authenticated',
+        app_metadata: { provider: 'phone', providers: ['phone'] },
+        user_metadata: data.user.user_metadata,
+        created_at: new Date(0).toISOString(),
+        email: data.user.email,
+      } as User
+
       setUser(mockUser)
       setSession(null)
-      return
+    } catch (error) {
+      throw error
     }
-
-    // Normalize phone number to digits only for comparison (add country code if missing)
-    const phoneDigits = parseInt('1' + phone.replace(/\D/g, ''), 10)
-
-    // Verify phone + passcode against database
-    const { data: allProfiles, error: queryError } = await supabase
-      .from('profiles')
-      .select('id, phone_number, passcode_hash, display_name')
-      .returns<Array<{ id: string; phone_number: number; passcode_hash: string; display_name: string }>>()
-
-    if (queryError || !allProfiles) {
-      throw new Error('Unable to verify phone number')
-    }
-
-    // Find profile matching phone number (now stored as bigint)
-    const data = allProfiles.find(p => p.phone_number === phoneDigits)
-
-    if (!data) {
-      throw new Error('Phone number not found. Contact your family to be added.')
-    }
-
-    // Simple passcode verification (in production, use bcrypt)
-    if (data.passcode_hash !== passcode) {
-      throw new Error('Incorrect passcode')
-    }
-
-    // Create a mock authenticated user from the profile
-    const mockUser = createMockUser(
-      `${phoneDigits}@gucklings.local`,
-      data.id,
-      data.display_name
-    )
-
-    // Persist user to localStorage
-    window.localStorage.setItem(PERSISTED_USER_KEY, JSON.stringify(mockUser))
-    setUser(mockUser)
-    setSession(null)
   }
 
   const signOut = async () => {
-    // Clear persisted user
-    window.localStorage.removeItem(PERSISTED_USER_KEY)
-    setUser(null)
-    setSession(null)
-
-    if (supabase) {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+    try {
+      await fetch('/api/auth/session', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('[AuthContext] Error during logout:', error)
+    } finally {
+      setUser(null)
+      setSession(null)
+      if (typeof window !== 'undefined') {
+        const dbReq = indexedDB.deleteDatabase('gucklings_drafts')
+        dbReq.onerror = () => console.error('Failed to clear drafts on logout')
+      }
     }
   }
 

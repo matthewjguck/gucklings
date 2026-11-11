@@ -28,7 +28,20 @@ export default function Login() {
 
     try {
       await signIn(phone, passcode)
-      navigate(nextPath || '/home')
+
+      let redirectUrl = '/home'
+      if (nextPath) {
+        try {
+          const nextUrl = new URL(nextPath, window.location.origin)
+          if (nextUrl.origin === window.location.origin) {
+            redirectUrl = nextPath
+          }
+        } catch {
+          redirectUrl = '/home'
+        }
+      }
+
+      navigate(redirectUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
       setLoading(false)
