@@ -14,6 +14,7 @@ import { DEFAULT_ADJUSTMENTS } from '@/lib/imageProcessing'
 import { loadDraft, clearDraft } from '@/lib/onboardingDraft'
 import { renderToPrintBuffer } from '@/lib/escpos'
 import { useAuth } from '@/contexts/AuthContext'
+import { useComposeDraft } from '@/lib/useComposeDraft'
 import type { Block, TextStyle, Signature, CornerSticker } from '@/types/canvas'
 import { newBlockId, STYLE_LABELS } from '@/types/canvas'
 import recipientBarSvg from '@/assets/icons/recipient-bar.svg'
@@ -90,12 +91,47 @@ export default function ReceiptEditor() {
     return ''
   })
 
+  const [currentDate] = useState(new Date().toISOString().split('T')[0])
+
+  const { triggerAutosave, saveState, error: draftError, removeDraft } = useComposeDraft({
+    to: recipientDisplayName,
+    date: currentDate,
+    blocks,
+    signature,
+  })
+
   // Initialize contentEditable with recipient name
   useEffect(() => {
     if (recipientNameRef.current && !recipientNameRef.current.textContent) {
       recipientNameRef.current.textContent = recipientDisplayName
     }
   }, [])
+
+  useEffect(() => {
+    triggerAutosave()
+  }, [blocks, triggerAutosave])
+
+  useEffect(() => {
+    triggerAutosave()
+  }, [signature, triggerAutosave])
+
+  useEffect(() => {
+    const handleBlur = () => triggerAutosave()
+    const handleVisibilityChange = () => {
+      if (document.hidden) triggerAutosave()
+    }
+    const handlePageHide = () => triggerAutosave()
+
+    window.addEventListener('blur', handleBlur)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', handlePageHide)
+
+    return () => {
+      window.removeEventListener('blur', handleBlur)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', handlePageHide)
+    }
+  }, [triggerAutosave])
 
   const addTextBlock = () => {
     const newBlock: Block = {
@@ -104,7 +140,7 @@ export default function ReceiptEditor() {
       content: '',
       style: 'inter',
     }
-    setBlocks([...blocks, newBlock])
+    setBlocks(prev => [...prev, newBlock])
     setActiveBlockId(newBlock.id)
   }
 
@@ -114,34 +150,35 @@ export default function ReceiptEditor() {
       type: 'image',
       dataUrl: '',
     }
-    setBlocks([...blocks, newBlock])
+    setBlocks(prev => [...prev, newBlock])
     setActiveBlockId(newBlock.id)
   }
 
   const handleAddSticker = (sticker: CornerSticker) => {
-    const active = blocks.find((b) => b.id === activeBlockId)
-    if (active && active.type === 'sticker' && !active.previewUrl) {
-      // Fill the existing empty sticker slot instead of appending a new one.
-      setBlocks(blocks.map((b) => (b.id === active.id ? { ...b, previewUrl: sticker.previewUrl, fullUrl: sticker.fullUrl, ditheredDataUrl: sticker.ditheredDataUrl } : b)))
-      return
-    }
-    const newBlock: Block = {
-      id: newBlockId(),
-      type: 'sticker',
-      previewUrl: sticker.previewUrl,
-      fullUrl: sticker.fullUrl,
-      ditheredDataUrl: sticker.ditheredDataUrl,
-    }
-    setBlocks([...blocks, newBlock])
-    setActiveBlockId(newBlock.id)
+    setBlocks(prev => {
+      const active = prev.find((b) => b.id === activeBlockId)
+      if (active && active.type === 'sticker' && !active.previewUrl) {
+        // Fill the existing empty sticker slot instead of appending a new one.
+        return prev.map((b) => (b.id === active.id ? { ...b, previewUrl: sticker.previewUrl, fullUrl: sticker.fullUrl, ditheredDataUrl: sticker.ditheredDataUrl } : b))
+      }
+      const newBlock: Block = {
+        id: newBlockId(),
+        type: 'sticker',
+        previewUrl: sticker.previewUrl,
+        fullUrl: sticker.fullUrl,
+        ditheredDataUrl: sticker.ditheredDataUrl,
+      }
+      setActiveBlockId(newBlock.id)
+      return [...prev, newBlock]
+    })
   }
 
   const updateBlock = (id: string, updates: any) => {
-    setBlocks(blocks.map(block => (block.id === id ? { ...block, ...updates } : block)))
+    setBlocks(prev => prev.map(block => (block.id === id ? { ...block, ...updates } : block)))
   }
 
   const deleteBlock = (id: string) => {
-    setBlocks(blocks.filter(block => block.id !== id))
+    setBlocks(prev => prev.filter(block => block.id !== id))
     setActiveBlockId(null)
   }
 
@@ -233,7 +270,7 @@ export default function ReceiptEditor() {
 
       // Render receipt to ESC/POS buffer
       console.log('[ReceiptEditor] Starting bitmap capture...')
-      const { buffer } = await renderToPrintBuffer(cleanReceipt)
+      const { buffer, imageBase64 } = await renderToPrintBuffer(cleanReceipt)
       document.body.removeChild(cleanReceipt)
       console.log('[ReceiptEditor] Bitmap captured, ESC/POS buffer length:', buffer.length)
 
@@ -256,9 +293,11 @@ export default function ReceiptEditor() {
 
       // Navigate to printing confirmation to show receipt and wait for print confirmation
       clearDraft()
+      await removeDraft()
       navigate('/printing-confirmation', {
         state: {
           receiptImage: receiptImageBase64,
+          previewImage: imageBase64,
           senderName,
         },
       })
@@ -456,16 +495,6 @@ export default function ReceiptEditor() {
                       onDelete={() => deleteBlock(block.id)}
                     />
                   )}
-                  {activeBlockId === block.id && !(block.type === 'text' && !block.content) && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); deleteBlock(block.id) }}
-                      className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-red-500 text-white text-lg flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
-                      aria-label="Delete block"
-                    >
-                      ×
-                    </button>
-                  )}
                 </div>
               ))
             )}
@@ -606,6 +635,37 @@ export default function ReceiptEditor() {
         {error && (
           <p className="mt-4 text-xs text-red-600">{error}</p>
         )}
+
+        {draftError && (
+          <p className="mt-4 text-xs text-red-600">Draft save error: {draftError}</p>
+        )}
+
+        {/* Save State Indicator */}
+        <div className="mt-4 flex items-center justify-end gap-2">
+          {saveState === 'saving' && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+              <span>Saving draft…</span>
+            </div>
+          )}
+          {saveState === 'saved' && (
+            <div className="flex items-center gap-2 text-xs text-green-600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 3.5L6 11L2.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>Draft saved</span>
+            </div>
+          )}
+          {saveState === 'error' && (
+            <div className="flex items-center gap-2 text-xs text-red-500">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 4V8M8 12H8.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span>Save failed</span>
+            </div>
+          )}
+        </div>
 
         {/* Preview Image */}
         {previewImage && (

@@ -137,9 +137,9 @@ def claim_job(job_id: str) -> bool:
 
 
 def mark_done(job_id: str) -> None:
-    result = supabase.table("print_jobs").update({"status": "done"}).eq("id", job_id).execute()
+    result = supabase.table("print_jobs").update({"status": "printed"}).eq("id", job_id).execute()
     if not result.data:
-        raise Exception(f"Failed to mark job {job_id} as done")
+        raise Exception(f"Failed to mark job {job_id} as printed")
 
 
 def mark_failed(job_id: str, error: str) -> None:

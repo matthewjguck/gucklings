@@ -7,7 +7,7 @@ export default function PrintingConfirmation() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
-  const state = location.state as { receiptImage?: string; senderName?: string } | null
+  const state = location.state as { receiptImage?: string; previewImage?: string; senderName?: string } | null
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
@@ -111,7 +111,7 @@ export default function PrintingConfirmation() {
         {/* Receipt Preview */}
         <div className="mb-6 bg-white border border-gray-200 rounded p-4 max-h-80 overflow-y-auto">
           <img
-            src={`data:image/png;base64,${state.receiptImage}`}
+            src={state.previewImage || `data:image/png;base64,${state.receiptImage}`}
             alt="Receipt preview"
             className="w-full"
           />
